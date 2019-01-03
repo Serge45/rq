@@ -702,6 +702,19 @@ class TestWorker(RQTestCase):
         worker.last_cleaned_at = utcnow() - timedelta(seconds=3700)
         self.assertTrue(worker.should_run_maintenance_tasks)
 
+    def test_should_run_maintenance_task_period(self):
+        """Workers should run maintenance tasks on startup and every self.registry_clean_period."""
+        queue = Queue(connection=self.testconn)
+        worker = Worker(queue)
+        self.assertTrue(worker.should_run_maintenance_tasks)
+        worker.registry_clean_period = timedelta(minutes=30)
+        worker.last_cleaned_at = utcnow()
+        self.assertFalse(worker.should_run_maintenance_tasks)
+        worker.last_cleaned_at = utcnow() - timedelta(minutes=15)
+        self.assertFalse(worker.should_run_maintenance_tasks)
+        worker.last_cleaned_at = utcnow() - timedelta(minutes=60)
+        self.assertTrue(worker.should_run_maintenance_tasks)
+
     def test_worker_calls_clean_registries(self):
         """Worker calls clean_registries when run."""
         queue = Queue(connection=self.testconn)

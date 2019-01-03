@@ -190,6 +190,7 @@ class Worker(object):
         self.failed_queue = get_failed_queue(connection=self.connection,
                                              job_class=self.job_class)
         self.last_cleaned_at = None
+        self.registry_clean_period = timedelta(hours=1)
         self.successful_job_count = 0
         self.failed_job_count = 0
         self.total_working_time = 0
@@ -903,7 +904,7 @@ class Worker(object):
         """Maintenance tasks should run on first startup or every hour."""
         if self.last_cleaned_at is None:
             return True
-        if (utcnow() - self.last_cleaned_at) > timedelta(hours=1):
+        if (utcnow() - self.last_cleaned_at) > self.registry_clean_period:
             return True
         return False
 
